@@ -16,7 +16,7 @@ export { defaultAIConfig, validateAIConfig, AIConfig } from './config';
 export { default as aiRoutes } from './routes';
 
 // Graphs
-export { createQueryProcessorGraph, processLegalQuery } from './graphs/query-processor';
+export { createQueryProcessorGraph, processLegalQuery, processQuery } from './graphs/query-processor';
 export { createConversationalAgentGraph, processConversationMessage } from './graphs/conversational-agent';
 
 // Core AI functions

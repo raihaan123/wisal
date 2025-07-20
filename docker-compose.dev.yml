@@ -1,110 +1,86 @@
-version: '3.8'
-
-# Development override configuration
-# Use with: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+version: "3.8"
 
 services:
-  # MongoDB with volume mount for data persistence
+  # MongoDB Service
   mongodb:
+    image: mongo:7.0
+    container_name: wisal-mongodb-dev
+    restart: unless-stopped
     ports:
       - "27017:27017"
-    volumes:
-      - ./wisal/data/mongodb:/data/db
-
-  # Elasticsearch with development settings
-  elasticsearch:
     environment:
-      - discovery.type=single-node
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"  # Lower memory for dev
-      - xpack.security.enabled=false
-      - logger.level=DEBUG
+      MONGO_INITDB_DATABASE: wisal
     volumes:
-      - ./wisal/data/elasticsearch:/usr/share/elasticsearch/data
+      - mongodb_data_dev:/data/db
+    networks:
+      - wisal-network-dev
 
-  # Redis with custom configuration
+  # Redis Service
   redis:
-    volumes:
-      - ./wisal/data/redis:/data
+    image: redis:7-alpine
+    container_name: wisal-redis-dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - wisal-network-dev
 
-  # Backend with hot reload
+  # Backend Service (Development)
   backend:
     build:
       context: ./wisal/backend
       dockerfile: Dockerfile.dev
+    container_name: wisal-backend-dev
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env.docker
     environment:
       NODE_ENV: development
-      DEBUG: wisal:*
+      PORT: 4000
+      MONGODB_URI: mongodb://mongodb:27017/wisal
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: dev-jwt-secret-2025
+      JWT_REFRESH_SECRET: dev-jwt-refresh-secret-2025
+      FRONTEND_URL: http://localhost:3000
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-test-key}
+      LINKEDIN_CLIENT_ID: ${LINKEDIN_CLIENT_ID:-your_linkedin_client_id}
+      LINKEDIN_CLIENT_SECRET: ${LINKEDIN_CLIENT_SECRET:-your_linkedin_client_secret}
+      LINKEDIN_CALLBACK_URL: http://localhost:4000/api/auth/linkedin/callback
+    depends_on:
+      - mongodb
+      - redis
     volumes:
       - ./wisal/backend:/app
       - /app/node_modules
-    command: npm run dev
+    networks:
+      - wisal-network-dev
 
-  # Frontend with hot reload
+  # Frontend Service (Development)
   frontend:
     build:
       context: ./wisal/frontend
       dockerfile: Dockerfile.dev
+    container_name: wisal-frontend-dev
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
     environment:
       NODE_ENV: development
+      VITE_API_URL: http://localhost:4000/api
+      VITE_SOCKET_URL: http://localhost:4000
+    depends_on:
+      - backend
     volumes:
       - ./wisal/frontend:/app
       - /app/node_modules
-      - /app/.next
-    command: npm run dev
-
-  # MongoDB Express for database management
-  mongo-express:
-    image: mongo-express:latest
-    container_name: wisal-mongo-express
-    restart: unless-stopped
-    ports:
-      - "8081:8081"
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_ROOT_USERNAME:-admin}
-      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_ROOT_PASSWORD:-changeme}
-      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_ROOT_USERNAME:-admin}:${MONGO_ROOT_PASSWORD:-changeme}@mongodb:27017/
-      ME_CONFIG_BASICAUTH_USERNAME: ${ME_USERNAME:-admin}
-      ME_CONFIG_BASICAUTH_PASSWORD: ${ME_PASSWORD:-changeme}
-    depends_on:
-      - mongodb
     networks:
-      - wisal-network
+      - wisal-network-dev
 
-  # Kibana for Elasticsearch visualization
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.11.0
-    container_name: wisal-kibana
-    restart: unless-stopped
-    ports:
-      - "5601:5601"
-    environment:
-      ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
-      ELASTICSEARCH_USERNAME: elastic
-      ELASTICSEARCH_PASSWORD: changeme
-      xpack.security.enabled: false
-    depends_on:
-      - elasticsearch
-    networks:
-      - wisal-network
-
-  # RedisInsight for Redis management
-  redisinsight:
-    image: redislabs/redisinsight:latest
-    container_name: wisal-redisinsight
-    restart: unless-stopped
-    ports:
-      - "8001:8001"
-    volumes:
-      - ./wisal/data/redisinsight:/db
-    networks:
-      - wisal-network
+networks:
+  wisal-network-dev:
+    driver: bridge
 
 volumes:
-  # Define data volumes for development
-  mongodb_data:
-    driver: local
-  elasticsearch_data:
-    driver: local
-  redis_data:
-    driver: local
+  mongodb_data_dev:

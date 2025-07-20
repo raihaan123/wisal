@@ -51,10 +51,10 @@ export default function Login() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Welcome back</h2>
-        <p className="mt-2 text-sm text-gray-600">
+        <h2 className="text-2xl font-bold text-wisal-dark-moss font-bierstadt">Welcome back</h2>
+        <p className="mt-2 text-sm text-wisal-dark-moss/70 font-bierstadt">
           Don't have an account?{' '}
-          <Link to="/register" className="font-medium text-primary hover:text-primary/80">
+          <Link to="/register" className="font-medium text-wisal-forest hover:text-wisal-forest/80 wisal-link">
             Sign up
           </Link>
         </p>

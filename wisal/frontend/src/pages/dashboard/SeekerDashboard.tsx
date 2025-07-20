@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MessageSquare, Calendar, Clock, CheckCircle, AlertCircle, Search, Users } from 'lucide-react'
+import { MessageSquare, Calendar, Clock, CheckCircle, AlertCircle, Search, Users, Newspaper } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { consultationService } from '@/services/consultationService'
 import { useAuthStore } from '@/store/authStore'
 import type { Consultation } from '@/services/consultationService'
 import { format } from 'date-fns'
+import { NewsSection } from '@/pages/news/NewsListing'
 
 export default function SeekerDashboard() {
   const navigate = useNavigate()
@@ -87,6 +89,17 @@ export default function SeekerDashboard() {
         <h1 className="text-2xl font-bold text-gray-900">Welcome back, {user?.name}!</h1>
         <p className="text-gray-600">Manage your legal consultations and find support</p>
       </div>
+
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="news">
+            <Newspaper className="h-4 w-4 mr-2" />
+            Latest News
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6">
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -217,6 +230,12 @@ export default function SeekerDashboard() {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="news" className="space-y-6">
+          <NewsSection limit={9} />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

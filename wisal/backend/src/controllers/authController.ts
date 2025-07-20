@@ -254,7 +254,15 @@ export const resetPassword = async (_req: Request, res: Response): Promise<void>
 
 export const getCurrentUser = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    logger.info('Fetching current user:', { userId: req.user?._id });
+    
     const user = await User.findById(req.user!._id).select('-password');
+    
+    if (!user) {
+      logger.error('User not found for getCurrentUser:', { userId: req.user?._id });
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
     
     let profile = null;
     if (user?.role === 'lawyer') {
@@ -265,6 +273,7 @@ export const getCurrentUser = async (req: AuthRequest, res: Response): Promise<v
       profile = await ActivistProfile.findOne({ userId: user._id });
     }
 
+    logger.info('Successfully fetched user data:', { userId: user._id, role: user.role, hasProfile: !!profile });
     res.json({ user, profile });
   } catch (error) {
     logger.error('Get current user error:', error);
@@ -298,27 +307,32 @@ export const linkedinAuthCustom = async (req: Request, res: Response): Promise<v
 // Custom LinkedIn OAuth callback handler that bypasses passport
 export const linkedinCallbackCustom = async (req: Request, res: Response): Promise<void> => {
   try {
+    logger.info('LinkedIn callback initiated with query params:', req.query);
     const { code, state, error, error_description } = req.query;
 
     // Handle OAuth errors
     if (error) {
       logger.error('LinkedIn OAuth error:', { error, error_description });
-      const errorUrl = new URL(`${process.env.FRONTEND_URL}/auth/error`);
+      const errorUrl = new URL(`${process.env.FRONTEND_URL}/auth/callback`);
       errorUrl.searchParams.append('error', error as string);
       errorUrl.searchParams.append('description', (error_description as string) || 'OAuth authentication failed');
+      logger.info('Redirecting to error URL:', errorUrl.toString());
       res.redirect(errorUrl.toString());
       return;
     }
 
     if (!code) {
-      const errorUrl = new URL(`${process.env.FRONTEND_URL}/auth/error`);
+      logger.error('No authorization code provided in callback');
+      const errorUrl = new URL(`${process.env.FRONTEND_URL}/auth/callback`);
       errorUrl.searchParams.append('error', 'missing_code');
       errorUrl.searchParams.append('description', 'Authorization code not provided');
+      logger.info('Redirecting to error URL:', errorUrl.toString());
       res.redirect(errorUrl.toString());
       return;
     }
 
     // Exchange code for access token
+    logger.info('Exchanging authorization code for access token');
     const tokenUrl = 'https://www.linkedin.com/oauth/v2/accessToken';
     const tokenParams = new URLSearchParams({
       grant_type: 'authorization_code',
@@ -326,6 +340,12 @@ export const linkedinCallbackCustom = async (req: Request, res: Response): Promi
       client_id: process.env.LINKEDIN_CLIENT_ID!,
       client_secret: process.env.LINKEDIN_CLIENT_SECRET!,
       redirect_uri: process.env.LINKEDIN_CALLBACK_URL!,
+    });
+
+    logger.info('Token exchange params:', {
+      client_id: process.env.LINKEDIN_CLIENT_ID,
+      redirect_uri: process.env.LINKEDIN_CALLBACK_URL,
+      code_length: (code as string).length
     });
 
     let tokenResponse;
@@ -336,14 +356,17 @@ export const linkedinCallbackCustom = async (req: Request, res: Response): Promi
           'Accept': 'application/json',
         },
       });
+      logger.info('Token exchange successful');
     } catch (error: any) {
       logger.error('Failed to exchange code for token:', {
         error: error.message,
         response: error.response?.data,
+        status: error.response?.status,
       });
-      const errorUrl = new URL(`${process.env.FRONTEND_URL}/auth/error`);
+      const errorUrl = new URL(`${process.env.FRONTEND_URL}/auth/callback`);
       errorUrl.searchParams.append('error', 'token_exchange_failed');
       errorUrl.searchParams.append('description', 'Failed to obtain access token');
+      logger.info('Redirecting to error URL:', errorUrl.toString());
       res.redirect(errorUrl.toString());
       return;
     }
@@ -367,9 +390,10 @@ export const linkedinCallbackCustom = async (req: Request, res: Response): Promi
         status: error.response?.status,
         data: error.response?.data,
       });
-      const errorUrl = new URL(`${process.env.FRONTEND_URL}/auth/error`);
+      const errorUrl = new URL(`${process.env.FRONTEND_URL}/auth/callback`);
       errorUrl.searchParams.append('error', 'userinfo_fetch_failed');
       errorUrl.searchParams.append('description', 'Failed to fetch user information from LinkedIn');
+      logger.info('Redirecting to error URL:', errorUrl.toString());
       res.redirect(errorUrl.toString());
       return;
     }
@@ -385,9 +409,11 @@ export const linkedinCallbackCustom = async (req: Request, res: Response): Promi
       // Check if user exists with this email
       const email = userInfo.email;
       if (!email) {
-        const errorUrl = new URL(`${process.env.FRONTEND_URL}/auth/error`);
+        logger.error('No email found in LinkedIn profile');
+        const errorUrl = new URL(`${process.env.FRONTEND_URL}/auth/callback`);
         errorUrl.searchParams.append('error', 'no_email');
         errorUrl.searchParams.append('description', 'No email found in LinkedIn profile');
+        logger.info('Redirecting to error URL:', errorUrl.toString());
         res.redirect(errorUrl.toString());
         return;
       }
@@ -428,12 +454,19 @@ export const linkedinCallbackCustom = async (req: Request, res: Response): Promi
     redirectUrl.searchParams.append('refreshToken', refreshToken);
     redirectUrl.searchParams.append('role', user.role);
 
+    logger.info('Successfully authenticated user, redirecting to frontend:', {
+      userId: user._id,
+      role: user.role,
+      redirectUrl: redirectUrl.toString()
+    });
+
     res.redirect(redirectUrl.toString());
   } catch (error) {
     logger.error('LinkedIn custom callback error:', error);
-    const errorUrl = new URL(`${process.env.FRONTEND_URL}/auth/error`);
+    const errorUrl = new URL(`${process.env.FRONTEND_URL}/auth/callback`);
     errorUrl.searchParams.append('error', 'authentication_error');
     errorUrl.searchParams.append('description', 'An unexpected error occurred during authentication');
+    logger.info('Redirecting to error URL:', errorUrl.toString());
     res.redirect(errorUrl.toString());
   }
 };

@@ -1,0 +1,157 @@
+/* Wisal Brand Theme Styles */
+
+/* Import Bierstadt font - Add actual font files to public/fonts/ */
+@font-face {
+  font-family: 'Bierstadt';
+  src: url('/fonts/Bierstadt-Regular.woff2') format('woff2'),
+       url('/fonts/Bierstadt-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Bierstadt';
+  src: url('/fonts/Bierstadt-Bold.woff2') format('woff2'),
+       url('/fonts/Bierstadt-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Custom Wisal banner styles */
+.wisal-banner {
+  background-color: #63693B; /* Dark moss green */
+  color: #FFFFFF;
+  padding: 1rem 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.wisal-banner-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wisal-logo {
+  height: 3rem;
+  width: auto;
+}
+
+/* WCAG 2.1 Compliant color combinations */
+.wisal-primary-button {
+  background-color: #607B23; /* Forest green */
+  color: #FFFFFF;
+  transition: background-color 0.2s ease;
+}
+
+.wisal-primary-button:hover {
+  background-color: #4a5f1c; /* Darker forest green for hover */
+}
+
+.wisal-secondary-button {
+  background-color: #8A9D48; /* Moss green */
+  color: #000000; /* Black text for contrast */
+  transition: background-color 0.2s ease;
+}
+
+.wisal-secondary-button:hover {
+  background-color: #768842; /* Darker moss green for hover */
+}
+
+/* Text on light backgrounds */
+.wisal-text-primary {
+  color: #607B23; /* Forest green on white */
+}
+
+.wisal-text-secondary {
+  color: #63693B; /* Dark moss green on white */
+}
+
+/* Text on dark backgrounds */
+.wisal-text-light {
+  color: #FFFFFF;
+}
+
+/* Background colors */
+.wisal-bg-forest {
+  background-color: #607B23;
+}
+
+.wisal-bg-moss {
+  background-color: #8A9D48;
+}
+
+.wisal-bg-dark-moss {
+  background-color: #63693B;
+}
+
+/* Accessibility focus styles */
+.wisal-focus:focus {
+  outline: 3px solid #8A9D48;
+  outline-offset: 2px;
+}
+
+/* Mobile responsive utilities */
+@media (max-width: 768px) {
+  .wisal-banner {
+    padding: 0.75rem 0;
+  }
+  
+  .wisal-logo {
+    height: 2.5rem;
+  }
+}
+
+/* Card styles with Wisal theme */
+.wisal-card {
+  background-color: #FFFFFF;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s ease;
+}
+
+.wisal-card:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Form elements with Wisal theme */
+.wisal-input {
+  border-color: #8A9D48;
+  transition: border-color 0.2s ease;
+}
+
+.wisal-input:focus {
+  border-color: #607B23;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(96, 123, 35, 0.1);
+}
+
+/* Link styles */
+.wisal-link {
+  color: #607B23;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.wisal-link:hover {
+  color: #4a5f1c;
+  text-decoration: underline;
+}
+
+/* Utility classes for WCAG compliance */
+.wisal-high-contrast {
+  background-color: #000000;
+  color: #FFFFFF;
+}
+
+.wisal-readable-text {
+  font-size: 1rem;
+  line-height: 1.6;
+  letter-spacing: 0.025em;
+}

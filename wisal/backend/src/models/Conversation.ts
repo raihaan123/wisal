@@ -19,13 +19,14 @@ const conversationSchema = new Schema<IConversation>(
     },
     status: {
       type: String,
-      enum: ['active', 'completed', 'cancelled'],
+      enum: ['active', 'closed', 'archived'],
       default: 'active',
+      required: true,
     },
     type: {
       type: String,
       enum: ['consultation', 'general'],
-      default: 'consultation',
+      required: true,
     },
     startTime: {
       type: Date,
@@ -40,12 +41,22 @@ const conversationSchema = new Schema<IConversation>(
     },
     price: {
       type: Number,
-      required: true,
+      min: 0,
+    },
+    totalCost: {
+      type: Number,
       min: 0,
     },
     isPaid: {
       type: Boolean,
       default: false,
+    },
+    messages: [{
+      type: String,
+      ref: 'Message',
+    }],
+    lastMessageAt: {
+      type: Date,
     },
     rating: {
       type: Number,

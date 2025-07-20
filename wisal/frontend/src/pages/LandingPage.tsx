@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Shield, Users, MessageSquare, Lock, Globe, Heart } from 'lucide-react'
+import AISearchBox from '@/components/search/AISearchBox'
 
 export default function LandingPage() {
   const navigate = useNavigate()
@@ -42,13 +43,13 @@ export default function LandingPage() {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-b from-blue-50 to-white py-20">
+      <section className="relative bg-gradient-to-b from-wisal-moss/10 to-white py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-5xl font-bold text-gray-900 mb-6">
-              Legal Support for <span className="text-primary">Activists</span>
+            <h1 className="text-5xl font-bold text-wisal-dark-moss mb-6 font-bierstadt">
+              Legal Support for <span className="text-wisal-forest">Activists</span>
             </h1>
-            <p className="text-xl text-gray-600 mb-8">
+            <p className="text-xl text-wisal-dark-moss/80 mb-8 font-bierstadt">
               Wisal connects activists with pro bono lawyers who understand your cause 
               and are ready to defend your rights.
             </p>
@@ -68,14 +69,21 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* AI Search Section */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <AISearchBox />
+        </div>
+      </section>
+
       {/* Features Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-wisal-moss/5">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl font-bold text-wisal-dark-moss mb-4 font-bierstadt">
               Why Choose Wisal?
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-wisal-dark-moss/80 max-w-2xl mx-auto font-bierstadt">
               We provide a secure platform that bridges the gap between activists 
               and legal professionals who share your values.
             </p>
@@ -83,13 +91,13 @@ export default function LandingPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
+              <Card key={index} className="wisal-card hover:shadow-lg transition-all hover:scale-105 border-wisal-moss/20">
                 <CardHeader>
-                  <feature.icon className="h-12 w-12 text-primary mb-4" />
-                  <CardTitle>{feature.title}</CardTitle>
+                  <feature.icon className="h-12 w-12 text-wisal-forest mb-4" />
+                  <CardTitle className="text-wisal-dark-moss font-bierstadt">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription>{feature.description}</CardDescription>
+                  <CardDescription className="text-wisal-dark-moss/70">{feature.description}</CardDescription>
                 </CardContent>
               </Card>
             ))}

@@ -8,10 +8,13 @@ import AuthLayout from '@/components/layout/AuthLayout'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 
 // Public pages
-import LandingPage from '@/pages/LandingPage'
+import LandingPage from '@/pages/LandingPageEnhanced'
 import ActivismHub from '@/pages/ActivismHub'
 import LawyerListing from '@/pages/lawyers/LawyerListing'
 import LawyerProfile from '@/pages/lawyers/LawyerProfile'
+import ForumPage from '@/pages/forum/ForumPage'
+import ThreadDetail from '@/components/forum/ThreadDetail'
+import NewsListing from '@/pages/news/NewsListing'
 
 // Auth pages
 import Login from '@/pages/auth/Login'
@@ -22,6 +25,7 @@ import OAuthCallback from '@/pages/auth/OAuthCallback'
 // Protected pages
 import Dashboard from '@/pages/dashboard/Dashboard'
 import ChatInterface from '@/pages/consultations/ChatInterface'
+import ConsultationsList from '@/pages/consultations/ConsultationsList'
 
 // Route guards
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
@@ -42,6 +46,9 @@ function App() {
         <Route path="/activism-hub" element={<ActivismHub />} />
         <Route path="/lawyers" element={<LawyerListing />} />
         <Route path="/lawyers/:id" element={<LawyerProfile />} />
+        <Route path="/forum" element={<ForumPage />} />
+        <Route path="/forum/thread/:threadId" element={<ThreadDetail />} />
+        <Route path="/news" element={<NewsListing />} />
       </Route>
 
       {/* Auth routes */}
@@ -63,6 +70,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           
           {/* Consultation routes */}
+          <Route path="/consultations" element={<ConsultationsList />} />
           <Route path="/consultations/:id" element={<ChatInterface />} />
         </Route>
       </Route>

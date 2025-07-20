@@ -16,11 +16,10 @@ MODE=${1:-dev}
 
 echo -e "${GREEN}🚀 Starting Wisal platform in ${MODE} mode...${NC}"
 
-# Check if .env file exists
-if [ ! -f .env ]; then
-    echo -e "${YELLOW}⚠️  .env file not found. Creating from .env.example...${NC}"
-    cp .env.example .env
-    echo -e "${GREEN}✅ Created .env file. Please update it with your configuration.${NC}"
+# Check if .env.docker file exists
+if [ ! -f ../../.env.docker ]; then
+    echo -e "${YELLOW}⚠️  .env.docker file not found in project root.${NC}"
+    echo -e "${YELLOW}Please create it with your OPENAI_API_KEY and LinkedIn OAuth credentials.${NC}"
 fi
 
 # Create necessary directories
@@ -35,7 +34,7 @@ chmod 755 scripts/*.sh 2>/dev/null || true
 # Start containers based on mode
 if [ "$MODE" = "dev" ]; then
     echo -e "${GREEN}🔧 Starting development environment...${NC}"
-    docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+    docker-compose -f ../../docker-compose.dev.yml up -d
     
     echo -e "${GREEN}✅ Development environment started!${NC}"
     echo -e "${YELLOW}📋 Access points:${NC}"
@@ -48,7 +47,7 @@ if [ "$MODE" = "dev" ]; then
     
 elif [ "$MODE" = "prod" ]; then
     echo -e "${GREEN}🏭 Starting production environment...${NC}"
-    docker-compose up -d
+    docker-compose -f ../../docker-compose.yml up -d
     
     echo -e "${GREEN}✅ Production environment started!${NC}"
     echo -e "${YELLOW}📋 Access points:${NC}"

@@ -83,3 +83,6 @@ export const optionalAuth = async (
 
 // Re-export RBAC middleware functions for convenience
 export { checkPermission, hasRole, hasAllRoles, loadUserPermissions } from './rbac';
+
+// Alias for consistency with controller naming
+export const authenticateOptional = optionalAuth;

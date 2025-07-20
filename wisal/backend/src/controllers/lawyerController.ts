@@ -4,6 +4,7 @@ import User from '../models/User';
 import { AuthRequest, ILawyerProfile } from '../types';
 import logger from '../utils/logger';
 import ElasticsearchService from '../services/elasticsearch';
+import { transformLawyerProfileForFrontend } from '../utils/transformers';
 
 export const searchLawyers = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -44,37 +45,42 @@ export const searchLawyers = async (req: Request, res: Response): Promise<void> 
       profiles.find(p => p._id.toString() === id)
     ).filter(Boolean);
 
+    // Transform profiles to match frontend expectations
+    const transformedLawyers = orderedProfiles.map(profile => 
+      transformLawyerProfileForFrontend(profile)
+    );
+
     res.json({
-      lawyers: orderedProfiles,
-      pagination: {
-        page: Number(page),
-        limit: Number(limit),
-        total: searchResults.total.value || searchResults.total,
-        pages: Math.ceil((searchResults.total.value || searchResults.total) / Number(limit))
-      },
-      took: searchResults.took
+      lawyers: transformedLawyers,
+      total: searchResults.total.value || searchResults.total,
+      page: Number(page),
+      limit: Number(limit),
+      totalPages: Math.ceil((searchResults.total.value || searchResults.total) / Number(limit))
     });
   } catch (error) {
     logger.error('Search lawyers error:', error);
     // Fallback to MongoDB search if Elasticsearch fails
     try {
       const { page = 1, limit = 20 } = req.query;
-      const lawyers = await LawyerProfile.find({ verified: true })
-        .populate('userId', 'name profilePicture')
+      const lawyerProfiles = await LawyerProfile.find({ verified: true })
+        .populate('userId', 'name profilePicture email')
         .sort({ 'rating.average': -1 })
         .limit(Number(limit))
         .skip((Number(page) - 1) * Number(limit));
 
       const total = await LawyerProfile.countDocuments({ verified: true });
 
+      // Transform profiles to match frontend expectations
+      const transformedLawyers = lawyerProfiles.map(profile => 
+        transformLawyerProfileForFrontend(profile)
+      );
+
       res.json({
-        lawyers,
-        pagination: {
-          page: Number(page),
-          limit: Number(limit),
-          total,
-          pages: Math.ceil(total / Number(limit)),
-        },
+        lawyers: transformedLawyers,
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        totalPages: Math.ceil(total / Number(limit))
       });
     } catch (mongoError) {
       res.status(500).json({ error: 'Failed to search lawyers' });

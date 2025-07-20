@@ -24,8 +24,10 @@ import userRoutes from './routes/users';
 import lawyerRoutes from './routes/lawyers';
 import queryRoutes from './routes/queries';
 import conversationRoutes from './routes/conversations';
+import consultationRoutes from './routes/consultations';
 import postRoutes from './routes/posts';
 import aiRoutes from './ai/routes';
+import aiSearchRoutes from './routes/ai-search';
 import adminRoutes from './routes/admin';
 
 // Import utilities
@@ -118,8 +120,10 @@ app.use('/api/users', userRoutes);
 app.use('/api/lawyers', lawyerRoutes);
 app.use('/api/queries', queryRoutes);
 app.use('/api/conversations', conversationRoutes);
+app.use('/api/consultations', consultationRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/ai', aiSearchRoutes); // AI search endpoints
 app.use('/api/admin', adminRoutes);
 
 // Health check endpoint

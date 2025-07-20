@@ -1,0 +1,192 @@
+/* Chat UI Kit style overrides to match Wisal theme */
+
+/* Main container background */
+.cs-main-container {
+  background-color: #f9fafb;
+}
+
+/* Chat container */
+.cs-chat-container {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+/* Conversation header */
+.cs-conversation-header {
+  background-color: #607B23 !important; /* Forest green */
+  color: #ffffff !important;
+  border-bottom: 2px solid #4a5f1c;
+}
+
+.cs-conversation-header__content {
+  color: #ffffff !important;
+}
+
+.cs-conversation-header__user-name {
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+.cs-conversation-header__info {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Header buttons */
+.cs-conversation-header__actions button {
+  color: #ffffff !important;
+}
+
+.cs-conversation-header__actions button:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Message list */
+.cs-message-list {
+  background-color: #ffffff;
+}
+
+/* Messages */
+.cs-message--incoming .cs-message__content {
+  background-color: #f3f4f6 !important;
+  color: #1f2937 !important;
+  border: 1px solid #e5e7eb;
+}
+
+.cs-message--outgoing .cs-message__content {
+  background-color: #607B23 !important; /* Forest green */
+  color: #ffffff !important;
+}
+
+.cs-message--outgoing .cs-message__sent-time {
+  color: #6b7280 !important;
+}
+
+.cs-message--incoming .cs-message__sent-time {
+  color: #6b7280 !important;
+}
+
+/* Message separator */
+.cs-message-separator {
+  color: #6b7280 !important;
+}
+
+.cs-message-separator__line {
+  background-color: #e5e7eb !important;
+}
+
+/* Message input */
+.cs-message-input {
+  background-color: #f9fafb !important;
+  border-top: 1px solid #e5e7eb !important;
+}
+
+.cs-message-input__content-editor {
+  background-color: #ffffff !important;
+  border: 1px solid #8A9D48 !important; /* Moss green */
+  color: #1f2937 !important;
+}
+
+.cs-message-input__content-editor:focus-within {
+  border-color: #607B23 !important; /* Forest green */
+  box-shadow: 0 0 0 3px rgba(96, 123, 35, 0.1) !important;
+}
+
+.cs-message-input__content-editor-wrapper:focus-within {
+  border-color: #607B23 !important;
+}
+
+/* Send button */
+.cs-button--send {
+  background-color: #607B23 !important; /* Forest green */
+  color: #ffffff !important;
+}
+
+.cs-button--send:hover:not(:disabled) {
+  background-color: #4a5f1c !important;
+}
+
+.cs-button--send:disabled {
+  background-color: #d1d5db !important;
+  color: #9ca3af !important;
+}
+
+/* Typing indicator */
+.cs-typing-indicator__text {
+  color: #6b7280 !important;
+}
+
+.cs-typing-indicator__dot {
+  background-color: #8A9D48 !important; /* Moss green */
+}
+
+/* Avatars */
+.cs-avatar {
+  border: 2px solid #e5e7eb;
+}
+
+.cs-avatar--md {
+  width: 40px;
+  height: 40px;
+}
+
+/* Conversation list (if used) */
+.cs-conversation {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.cs-conversation:hover {
+  background-color: #f9fafb !important;
+}
+
+.cs-conversation--active {
+  background-color: #f3f4f6 !important;
+  border-left: 3px solid #607B23 !important;
+}
+
+/* Custom scrollbar */
+.cs-message-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.cs-message-list::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+
+.cs-message-list::-webkit-scrollbar-thumb {
+  background: #8A9D48;
+  border-radius: 4px;
+}
+
+.cs-message-list::-webkit-scrollbar-thumb:hover {
+  background: #607B23;
+}
+
+/* Badge overrides for status */
+.cs-conversation-header .badge {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+}
+
+/* Custom message content for consultation cards */
+.cs-message__custom-content .consultation-request-card {
+  margin: 0.5rem;
+}
+
+/* Focus styles for accessibility */
+.cs-button:focus,
+.cs-message-input__content-editor:focus,
+.cs-conversation:focus {
+  outline: 3px solid #8A9D48 !important;
+  outline-offset: 2px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .cs-conversation-header {
+    padding: 0.75rem 1rem;
+  }
+  
+  .cs-message-input {
+    padding: 0.75rem;
+  }
+}

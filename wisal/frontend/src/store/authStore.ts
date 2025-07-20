@@ -3,22 +3,46 @@ import { devtools, persist } from 'zustand/middleware'
 import { authService } from '@/services/authService'
 import type { User, LoginDto, RegisterDto } from '@/types/auth'
 
+/**
+ * Authentication Store
+ * 
+ * Global state management for authentication using Zustand.
+ * Features:
+ * - Persistent token storage
+ * - Automatic auth state restoration
+ * - Global loading and error states
+ * - User profile management
+ * 
+ * @module authStore
+ */
+
+/**
+ * Authentication state interface
+ */
 interface AuthState {
-  user: User | null
-  token: string | null
-  isAuthenticated: boolean
-  isLoading: boolean
-  error: string | null
+  // State
+  user: User | null              // Current authenticated user
+  token: string | null           // JWT token
+  isAuthenticated: boolean       // Authentication status
+  isLoading: boolean            // Loading state for auth operations
+  error: string | null          // Error message from last operation
   
   // Actions
-  login: (data: LoginDto) => Promise<void>
-  register: (data: RegisterDto) => Promise<void>
-  logout: () => void
-  checkAuth: () => Promise<void>
-  clearError: () => void
-  updateUser: (user: Partial<User>) => void
+  login: (data: LoginDto) => Promise<void>           // User login
+  register: (data: RegisterDto) => Promise<void>     // User registration
+  logout: () => void                                 // Clear auth state
+  checkAuth: () => Promise<void>                     // Verify current token
+  clearError: () => void                             // Clear error state
+  updateUser: (user: Partial<User>) => void          // Update user data
 }
 
+/**
+ * Authentication store hook
+ * 
+ * @example
+ * const { user, login, logout } = useAuthStore()
+ * await login({ email, password })
+ */
 export const useAuthStore = create<AuthState>()(
   devtools(
     persist(

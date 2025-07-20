@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Pagination } from '@/components/ui/pagination'
 import { lawyerService, type LawyerFilter } from '@/services/lawyerService'
 import type { User } from '@/types/auth'
 
@@ -278,25 +279,12 @@ export default function LawyerListing() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex justify-center gap-2">
-              <Button
-                variant="outline"
-                onClick={() => handleFilterChange('page', Math.max(1, (filters.page || 1) - 1))}
-                disabled={filters.page === 1}
-              >
-                Previous
-              </Button>
-              <span className="flex items-center px-4">
-                Page {filters.page} of {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                onClick={() => handleFilterChange('page', Math.min(totalPages, (filters.page || 1) + 1))}
-                disabled={filters.page === totalPages}
-              >
-                Next
-              </Button>
-            </div>
+            <Pagination
+              currentPage={filters.page || 1}
+              totalPages={totalPages}
+              onPageChange={(page) => handleFilterChange('page', page)}
+              className="mt-8"
+            />
           )}
         </>
       )}

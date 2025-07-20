@@ -66,7 +66,7 @@ export const lawyerService = {
       }
     }
     
-    const response = await api.get(`/lawyers?${params}`)
+    const response = await api.get(`/lawyers/search?${params}`)
     return response.data
   },
 

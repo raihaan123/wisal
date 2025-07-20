@@ -24,6 +24,10 @@ const messageSchema = new Schema<IMessage>(
       default: 'text',
     },
     attachments: [{
+      id: {
+        type: String,
+        default: () => new mongoose.Types.ObjectId().toString(),
+      },
       url: {
         type: String,
         required: true,
@@ -34,21 +38,12 @@ const messageSchema = new Schema<IMessage>(
       },
       size: {
         type: Number,
-        required: true,
       },
       type: {
         type: String,
         required: true,
       },
     }],
-    // isRead not in IMessage interface - using readBy array instead
-    // isRead: {
-    //   type: Boolean,
-    //   default: false,
-    // },
-    // readAt: {
-    //   type: Date,
-    // },
     readBy: [{
       userId: {
         type: String,
@@ -59,10 +54,6 @@ const messageSchema = new Schema<IMessage>(
         default: Date.now,
       },
     }],
-    // isEdited: {
-    //   type: Boolean,
-    //   default: false,
-    // },
     editedAt: {
       type: Date,
     },

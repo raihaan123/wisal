@@ -57,6 +57,19 @@ router.get(
   authController.linkedinCallbackCustom
 );
 
+// Debug endpoint to check LinkedIn configuration
+router.get('/linkedin/debug', (req, res) => {
+  res.json({
+    configured: true,
+    clientId: process.env.LINKEDIN_CLIENT_ID ? 'Set' : 'Not set',
+    clientSecret: process.env.LINKEDIN_CLIENT_SECRET ? 'Set' : 'Not set',
+    callbackUrl: process.env.LINKEDIN_CALLBACK_URL || 'Not set',
+    frontendUrl: process.env.FRONTEND_URL || 'Not set',
+    authUrl: `${req.protocol}://${req.get('host')}/api/auth/linkedin-custom`,
+    expectedCallback: process.env.LINKEDIN_CALLBACK_URL || `${req.protocol}://${req.get('host')}/api/auth/linkedin/callback-custom`
+  });
+});
+
 // Refresh Token
 router.post(
   '/refresh',
