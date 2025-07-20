@@ -1,0 +1,298 @@
+import { StateGraph, END, START } from '@langchain/langgraph';
+import { BaseMessage, HumanMessage, AIMessage, SystemMessage } from '@langchain/core/messages';
+import { ChatOpenAI } from '@langchain/openai';
+import { z } from 'zod';
+import { AIQueryRequest, AIAnalysis, LegalQuery } from '../../types';
+import { defaultAIConfig } from '../config';
+import { generateEmbeddings } from '../embeddings';
+import { categorizeQuery } from '../categorization';
+import { matchLawyers } from '../matching';
+
+// Define the state schema for query processing
+const QueryStateSchema = z.object({
+  // Input
+  request: z.custom<AIQueryRequest>(),
+  userId: z.string(),
+  
+  // Processing stages
+  rawQuery: z.string(),
+  clarificationNeeded: z.boolean().default(false),
+  clarificationQuestions: z.array(z.string()).default([]),
+  
+  // Analysis results
+  analysis: z.custom<AIAnalysis>().optional(),
+  embeddings: z.array(z.number()).optional(),
+  categories: z.array(z.string()).default([]),
+  complexity: z.enum(['simple', 'moderate', 'complex']).default('moderate'),
+  
+  // Matching results
+  matchedLawyerIds: z.array(z.string()).default([]),
+  matchScores: z.record(z.number()).default({}),
+  
+  // Conversation context
+  messages: z.array(z.custom<BaseMessage>()).default([]),
+  conversationId: z.string().optional(),
+  
+  // Control flow
+  stage: z.enum([
+    'initial',
+    'analyzing',
+    'clarifying',
+    'categorizing',
+    'matching',
+    'finalizing',
+    'complete'
+  ]).default('initial'),
+  
+  error: z.string().optional(),
+});
+
+export type QueryState = z.infer<typeof QueryStateSchema>;
+
+// Create the query processing graph
+export function createQueryProcessorGraph() {
+  const workflow = new StateGraph<QueryState>({
+    channels: QueryStateSchema.shape,
+  });
+
+  const llm = new ChatOpenAI({
+    openAIApiKey: defaultAIConfig.openai.apiKey,
+    modelName: defaultAIConfig.openai.model,
+    temperature: defaultAIConfig.openai.temperature,
+  });
+
+  // Initial processing node
+  workflow.addNode('analyze_query', async (state) => {
+    console.log('Analyzing query:', state.rawQuery);
+    
+    const systemPrompt = `You are a legal query analyzer. Analyze the following legal query and provide:
+1. A clear, concise summary (2-3 sentences)
+2. Identify the main legal categories and issues
+3. Assess complexity (simple/moderate/complex)
+4. Estimate time needed for consultation (in minutes)
+5. Suggest relevant legal specialisms
+6. List key issues that need to be addressed
+7. Recommend immediate actions if urgent
+
+Format your response as JSON with the following structure:
+{
+  "summary": "string",
+  "categories": ["string"],
+  "complexity": "simple|moderate|complex",
+  "estimatedTime": number,
+  "suggestedSpecialisms": ["string"],
+  "keyIssues": ["string"],
+  "recommendedActions": ["string"],
+  "clarificationNeeded": boolean,
+  "clarificationQuestions": ["string"] // if clarification needed
+}`;
+
+    try {
+      const response = await llm.invoke([
+        new SystemMessage(systemPrompt),
+        new HumanMessage(state.rawQuery)
+      ]);
+
+      const analysis = JSON.parse(response.content as string);
+      
+      return {
+        analysis: {
+          summary: analysis.summary,
+          categories: analysis.categories,
+          complexity: analysis.complexity,
+          estimatedTime: analysis.estimatedTime,
+          suggestedSpecialisms: analysis.suggestedSpecialisms,
+          keyIssues: analysis.keyIssues,
+          recommendedActions: analysis.recommendedActions,
+        },
+        clarificationNeeded: analysis.clarificationNeeded || false,
+        clarificationQuestions: analysis.clarificationQuestions || [],
+        stage: analysis.clarificationNeeded ? 'clarifying' : 'categorizing',
+      };
+    } catch (error) {
+      console.error('Error analyzing query:', error);
+      return {
+        error: 'Failed to analyze query',
+        stage: 'complete',
+      };
+    }
+  });
+
+  // Clarification node (if needed)
+  workflow.addNode('clarify_query', async (state) => {
+    console.log('Clarification needed, questions:', state.clarificationQuestions);
+    
+    // In a real implementation, this would interact with the user
+    // For now, we'll proceed with the original query
+    return {
+      clarificationNeeded: false,
+      stage: 'categorizing',
+    };
+  });
+
+  // Categorization node
+  workflow.addNode('categorize_query', async (state) => {
+    console.log('Categorizing query');
+    
+    if (!state.analysis) {
+      return {
+        error: 'No analysis available for categorization',
+        stage: 'complete',
+      };
+    }
+
+    try {
+      const categories = await categorizeQuery(
+        state.rawQuery,
+        state.analysis.categories
+      );
+      
+      return {
+        categories,
+        stage: 'matching',
+      };
+    } catch (error) {
+      console.error('Error categorizing query:', error);
+      return {
+        error: 'Failed to categorize query',
+        stage: 'complete',
+      };
+    }
+  });
+
+  // Generate embeddings node
+  workflow.addNode('generate_embeddings', async (state) => {
+    console.log('Generating embeddings for semantic search');
+    
+    try {
+      const embeddings = await generateEmbeddings(state.rawQuery);
+      
+      return {
+        embeddings,
+        analysis: {
+          ...state.analysis!,
+          embeddings,
+        },
+      };
+    } catch (error) {
+      console.error('Error generating embeddings:', error);
+      // Continue without embeddings
+      return {};
+    }
+  });
+
+  // Lawyer matching node
+  workflow.addNode('match_lawyers', async (state) => {
+    console.log('Matching lawyers');
+    
+    if (!state.analysis) {
+      return {
+        error: 'No analysis available for matching',
+        stage: 'complete',
+      };
+    }
+
+    try {
+      const matchResults = await matchLawyers({
+        analysis: state.analysis,
+        categories: state.categories,
+        urgency: state.request.urgency || 'medium',
+        jurisdiction: state.request.jurisdiction,
+      });
+      
+      const matchedLawyerIds = matchResults.map(m => m.lawyerId.toString());
+      const matchScores = matchResults.reduce((acc, m) => {
+        acc[m.lawyerId.toString()] = m.score;
+        return acc;
+      }, {} as Record<string, number>);
+      
+      return {
+        matchedLawyerIds,
+        matchScores,
+        stage: 'finalizing',
+      };
+    } catch (error) {
+      console.error('Error matching lawyers:', error);
+      return {
+        error: 'Failed to match lawyers',
+        stage: 'complete',
+      };
+    }
+  });
+
+  // Finalization node
+  workflow.addNode('finalize_query', async (state) => {
+    console.log('Finalizing query processing');
+    
+    // Generate conversation starter messages
+    const conversationStarters = [
+      `Based on your query: "${state.analysis?.summary}"`,
+      'I\'ve matched you with lawyers who specialize in your legal needs.',
+      'You can start a conversation with any of them.',
+    ];
+    
+    return {
+      messages: conversationStarters.map(content => 
+        new HumanMessage({ content })
+      ),
+      stage: 'complete',
+    };
+  });
+
+  // Define edges (workflow)
+  workflow.addEdge(START, 'analyze_query');
+  workflow.addEdge('analyze_query', 'clarify_query');
+  workflow.addEdge('clarify_query', 'categorize_query');
+  workflow.addEdge('categorize_query', 'generate_embeddings');
+  workflow.addEdge('generate_embeddings', 'match_lawyers');
+  workflow.addEdge('match_lawyers', 'finalize_query');
+  workflow.addEdge('finalize_query', END);
+
+  // Conditional edges based on state
+  workflow.addConditionalEdges('analyze_query', (state) => {
+    if (state.error) return 'finalize_query';
+    if (state.clarificationNeeded) return 'clarify_query';
+    return 'categorize_query';
+  });
+
+  workflow.addConditionalEdges('categorize_query', (state) => {
+    if (state.error) return 'finalize_query';
+    return 'generate_embeddings';
+  });
+
+  return workflow.compile();
+}
+
+// Main query processing function
+export async function processLegalQuery(
+  request: AIQueryRequest,
+  userId: string
+): Promise<QueryState> {
+  const graph = createQueryProcessorGraph();
+  
+  const initialState: QueryState = {
+    request,
+    userId,
+    rawQuery: request.description,
+    clarificationNeeded: false,
+    clarificationQuestions: [],
+    categories: [],
+    complexity: 'moderate',
+    matchedLawyerIds: [],
+    matchScores: {},
+    messages: [],
+    stage: 'initial',
+  };
+
+  try {
+    const result = await graph.invoke(initialState);
+    return result;
+  } catch (error) {
+    console.error('Error processing legal query:', error);
+    return {
+      ...initialState,
+      error: 'Failed to process query',
+      stage: 'complete',
+    };
+  }
+}
